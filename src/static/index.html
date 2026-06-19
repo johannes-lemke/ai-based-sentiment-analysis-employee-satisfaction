@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Feedback</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+    <header class="app-header">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5Z"/></svg>
+            </span>
+            <span>
+                <div class="brand-name">Stimmungsbarometer</div>
+                <div class="brand-sub">Mitarbeiter-Feedback</div>
+            </span>
+        </div>
+    </header>
+
+    <main class="page-narrow">
+        <section id="form">
+            <div class="lead">
+                <h1>Wie geht es dir heute auf der Arbeit?</h1>
+                <span class="trust">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+                    Anonym und vertraulich
+                </span>
+            </div>
+
+            <div class="card">
+                <div class="ta-wrap">
+                    <textarea id="text" maxlength="1000" placeholder="Schreib frei heraus, was dir wichtig ist."></textarea>
+                    <span class="counter"><span id="count">0</span> / 1000</span>
+                </div>
+
+                <div class="field">
+                    <div class="select-wrap">
+                        <select id="location">
+                            <option value="">Bereich (freiwillig)</option>
+                        </select>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                </div>
+
+                <button id="submit" class="btn-primary">
+                    <span id="spinner" class="spinner" hidden></span>
+                    <span id="submit-label">Feedback absenden</span>
+                    <svg id="submit-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </button>
+            </div>
+        </section>
+
+        <section id="done" hidden aria-live="polite"></section>
+    </main>
+
+    <script>
+        const SUCCESS = {
+            cls: "success",
+            icon: '<path d="M20 6 9 17l-5-5"/>',
+            title: "Vielen Dank für dein Feedback!",
+            text: "Deine Rückmeldung ist angekommen. Komm gerne morgen wieder für ein neues Feedback.",
+        };
+        const LIMIT = {
+            cls: "limit",
+            icon: '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
+            title: "Heute schon abgegeben",
+            text: "Du hast für heute bereits Feedback gegeben. Besuch uns gern morgen wieder.",
+        };
+
+        function showDone(state) {
+            document.getElementById("form").hidden = true;
+            const done = document.getElementById("done");
+            done.innerHTML = `
+                <div class="card">
+                    <div class="state ${state.cls}">
+                        <div class="icon-circle">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">${state.icon}</svg>
+                        </div>
+                        <h2></h2>
+                        <p></p>
+                    </div>
+                </div>`;
+            done.querySelector("h2").textContent = state.title;
+            done.querySelector("p").textContent = state.text;
+            done.hidden = false;
+        }
+
+        async function loadLocations() {
+            const res = await fetch("/locations");
+            const data = await res.json();
+            const select = document.getElementById("location");
+            for (const loc of data.locations) {
+                const option = document.createElement("option");
+                option.value = loc.id;
+                option.textContent = loc.name;
+                select.appendChild(option);
+            }
+        }
+
+        const textarea = document.getElementById("text");
+        const count = document.getElementById("count");
+        textarea.addEventListener("input", () => { count.textContent = textarea.value.length; });
+
+        const submit = document.getElementById("submit");
+        const spinner = document.getElementById("spinner");
+        const arrow = document.getElementById("submit-arrow");
+
+        function setLoading(loading) {
+            submit.disabled = loading;
+            spinner.hidden = !loading;
+            arrow.hidden = loading;
+        }
+
+        submit.addEventListener("click", async () => {
+            const text = textarea.value;
+            const location = document.getElementById("location").value;
+            setLoading(true);
+            try {
+                const res = await fetch("/feedback", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ text: text, location_id: location ? Number(location) : null })
+                });
+                if (res.status === 429) {
+                    showDone(LIMIT);
+                } else if (res.ok) {
+                    showDone(SUCCESS);
+                } else {
+                    setLoading(false);
+                }
+            } catch {
+                setLoading(false);
+            }
+        });
+
+        loadLocations();
+    </script>
+</body>
+</html>
