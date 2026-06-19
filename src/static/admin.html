@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Admin</title>
+    <link rel="icon" type="image/png" href="/favicon.png">
+    <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="admin-layout">
+    <aside class="sidebar" id="sidebar">
+        <div class="brand">
+            <span class="brand-mark" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7a8.5 8.5 0 0 1-.9-3.8A8.38 8.38 0 0 1 12.5 3 8.5 8.5 0 0 1 21 11.5Z"/></svg>
+            </span>
+            <span>
+                <div class="brand-name">Stimmungsbarometer</div>
+                <div class="brand-sub">Adminbereich</div>
+            </span>
+        </div>
+
+        <nav class="nav">
+            <button class="nav-item active" data-section="dashboard">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+                Dashboard
+            </button>
+            <button class="nav-item" data-section="rohdaten">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><circle cx="3.5" cy="6" r="1"/><circle cx="3.5" cy="12" r="1"/><circle cx="3.5" cy="18" r="1"/></svg>
+                Rohdaten
+            </button>
+            <button class="nav-item" data-section="kategorien">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0l-7.2-7.2A2 2 0 0 1 2.8 12V4.8A2 2 0 0 1 4.8 2.8H12a2 2 0 0 1 1.4.6l7.2 7.2a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>
+                Kategorien
+            </button>
+            <button class="nav-item" data-section="standorte">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                Bereiche
+            </button>
+        </nav>
+
+        <div class="sidebar-foot">
+            <form method="post" action="/admin/logout">
+                <button type="submit" class="btn" style="width:100%">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 17l5-5-5-5M21 12H9M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/></svg>
+                    Abmelden
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <main class="content" id="content">
+      <div class="content-inner">
+        <section id="dashboard">
+            <h1 class="page-title">Dashboard</h1>
+            <p class="page-sub">Stimmungsverlauf je Bereich und Kategorie.</p>
+            <div class="dash-wrap">
+            <div id="dashboard-filter" class="toolbar sticky">
+                <label class="tool-field"><span>Jahr</span>
+                    <div class="select-wrap">
+                        <select id="db-year"></select>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                </label>
+                <label class="tool-field"><span>Bereich</span>
+                    <div class="select-wrap">
+                        <select id="loc-filter"><option value="">Alle</option></select>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                </label>
+                <label class="tool-field"><span>Kategorie</span>
+                    <div class="select-wrap">
+                        <select id="cat-filter"><option value="">Alle</option></select>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                    </div>
+                </label>
+            </div>
+            <div id="kpis" class="kpi-grid"></div>
+            <div id="charts"></div>
+            </div>
+        </section>
+
+        <section id="rohdaten" hidden>
+            <h1 class="page-title">Rohdaten</h1>
+            <p class="page-sub">Einzelnes Feedback mit den erkannten Aspekten.</p>
+            <div class="toolbar">
+                <label class="tool-field"><span>Von</span><input type="date" id="from"></label>
+                <label class="tool-field"><span>Bis</span><input type="date" id="to"></label>
+                <button id="apply" class="btn btn-accent">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18l-7 8v6l-4-2v-4Z"/></svg>
+                    Filtern
+                </button>
+                <button id="download" class="btn spacer">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12m0 0 4-4m-4 4-4-4M4 21h16"/></svg>
+                    Export (ZIP)
+                </button>
+            </div>
+            <div class="panel">
+                <div class="table-scroll">
+                    <table id="table" class="data-table">
+                        <thead>
+                            <tr><th>Datum</th><th>Bereich</th><th>Feedback</th><th>Aspekte <span class="th-legend">1 = schlecht, 2 = mittel, 3 = gut</span></th></tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <button id="prev" class="btn">Zurück</button>
+                    <span id="pageinfo" class="pageinfo"></span>
+                    <button id="next" class="btn">Weiter</button>
+                </div>
+            </div>
+        </section>
+
+        <section id="kategorien" hidden>
+            <h1 class="page-title">Kategorien</h1>
+            <p class="page-sub">Themen, nach denen das Feedback ausgewertet wird.</p>
+            <div class="note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>
+                <span>Die KI ordnet jedes Feedback einer dieser Kategorien zu und bewertet die Stimmung dafür (negativ, neutral, positiv). Wird eine Kategorie geändert, ergänzt oder entfernt, ändern sich Zuordnung und Score. <strong>Vorhandenes Feedback wird deshalb beim Speichern ab dem gewählten Stichtag neu ausgewertet.</strong></span>
+            </div>
+            <div class="panel list-card" id="cat-card"></div>
+        </section>
+
+        <section id="standorte" hidden>
+            <h1 class="page-title">Bereiche</h1>
+            <p class="page-sub">Auswahlmöglichkeiten im Feedback-Formular.</p>
+            <div class="panel list-card" id="loc-card"></div>
+        </section>
+      </div>
+    </main>
+</div>
+
+<div id="modal-overlay" class="modal-overlay" hidden>
+    <div id="modal" class="modal">
+        <h3>Neu auswerten?</h3>
+        <p>Beim Speichern wird das Feedback ab dem Stichtag neu ausgewertet. Der
+           Server ist dabei für einige Zeit nicht erreichbar. Am besten abends
+           ausführen.</p>
+        <div class="modal-actions">
+            <button id="modal-cancel" class="btn">Abbrechen</button>
+            <button id="modal-confirm" class="btn btn-accent">Speichern und neu auswerten</button>
+        </div>
+    </div>
+</div>
+
+<div id="toast-wrap" class="toast-wrap"></div>
+
+<script>
+    function toast(message, type) {
+        const wrap = document.getElementById("toast-wrap");
+        const el = document.createElement("div");
+        el.className = "toast" + (type ? " " + type : "");
+        el.textContent = message;
+        wrap.appendChild(el);
+        setTimeout(() => el.remove(), 3500);
+    }
+
+    // Navigation: Bereich umschalten, zuletzt aktiven Reiter merken
+    const buttons = document.querySelectorAll(".nav-item");
+
+    function showSection(target) {
+        const known = [...buttons].some(b => b.dataset.section === target);
+        if (!known) target = "dashboard";  // gespeicherter Reiter weggefallen
+        for (const b of buttons) b.classList.toggle("active", b.dataset.section === target);
+        for (const sec of document.querySelectorAll("#content section")) {
+            sec.hidden = sec.id !== target;
+        }
+        localStorage.setItem("admin-section", target);
+        if (target === "dashboard") initDashboard();
+        if (target === "kategorien") loadCategories();
+        if (target === "standorte") loadLocations();
+    }
+
+    for (const btn of buttons) {
+        btn.addEventListener("click", () => showSection(btn.dataset.section));
+    }
+
+    // Rohdaten: Filter, Tabelle, Export
+    let page = 1;
+    const size = 100;
+
+    function dateParams() {
+        const params = new URLSearchParams();
+        const from = document.getElementById("from").value;
+        const to = document.getElementById("to").value;
+        if (from) params.set("from", from);
+        if (to) params.set("to", to);
+        return params;
+    }
+
+    function scoreClass(score) {
+        return score === 3 ? "chip-pos" : score === 1 ? "chip-neg" : "chip-neu";
+    }
+
+    async function load() {
+        const params = dateParams();
+        params.set("page", page);
+        params.set("size", size);
+        const res = await fetch("/admin/feedback?" + params.toString());
+        const data = await res.json();
+        const tbody = document.querySelector("#table tbody");
+        tbody.innerHTML = "";
+        for (const fb of data.items) {
+            const dt = new Date(fb.created_at);
+            const date = dt.toLocaleDateString("de-DE",
+                {day: "2-digit", month: "2-digit", year: "numeric"});
+            const time = dt.toLocaleTimeString("de-DE", {hour: "2-digit", minute: "2-digit"});
+
+            const tr = document.createElement("tr");
+
+            const tdDate = document.createElement("td");
+            tdDate.className = "col-date";
+            tdDate.innerHTML = `<div>${date}</div><div style="color:var(--ink-400)">${time}</div>`;
+            tr.appendChild(tdDate);
+
+            const tdLoc = document.createElement("td");
+            const loc = document.createElement("span");
+            if (fb.location) { loc.className = "chip chip-loc"; loc.textContent = fb.location; }
+            else { loc.className = "chip chip-muted"; loc.textContent = "Ohne Angabe"; }
+            tdLoc.appendChild(loc);
+            tr.appendChild(tdLoc);
+
+            const tdText = document.createElement("td");
+            tdText.className = "col-text";
+            tdText.textContent = fb.text;
+            tr.appendChild(tdText);
+
+            const tdAspects = document.createElement("td");
+            const row = document.createElement("div");
+            row.className = "chip-row";
+            for (const a of fb.aspects) {
+                const chip = document.createElement("span");
+                chip.className = "chip " + scoreClass(a.score);
+                const dot = document.createElement("span");
+                dot.className = "dot";
+                chip.appendChild(dot);
+                chip.appendChild(document.createTextNode(`${a.category}:${a.score}`));
+                row.appendChild(chip);
+            }
+            if (!fb.aspects.length) {
+                const none = document.createElement("span");
+                none.className = "chip chip-muted";
+                none.textContent = "Keine";
+                row.appendChild(none);
+            }
+            tdAspects.appendChild(row);
+            tr.appendChild(tdAspects);
+
+            tbody.appendChild(tr);
+        }
+        const pages = Math.max(1, Math.ceil(data.total / size));
+        document.getElementById("pageinfo").textContent =
+            `Seite ${data.page} / ${pages} (${data.total} gesamt)`;
+        document.getElementById("prev").disabled = page <= 1;
+        document.getElementById("next").disabled = page >= pages;
+    }
+
+    document.getElementById("apply").addEventListener("click", () => { page = 1; load(); });
+    document.getElementById("prev").addEventListener("click", () => {
+        if (page > 1) { page--; load(); }
+    });
+    document.getElementById("next").addEventListener("click", () => { page++; load(); });
+    document.getElementById("download").addEventListener("click", () => {
+        window.location = "/admin/feedback/export?" + dateParams().toString();
+    });
+
+    load();
+
+    // Dashboard: Heatmap-Tabelle je Bereich
+    let dbData = null;       // letzte Antwort vom Endpunkt
+
+    function locLabel(loc) { return loc === null ? "Ohne Bereichsangabe" : loc; }
+
+    const MONTHS_DE = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun",
+                       "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"];
+    function monthShort(label) {
+        const mm = Number(label.slice(5, 7));
+        return MONTHS_DE[mm - 1] || label;
+    }
+
+    // Score 1-3 auf 0-100% skalieren.
+    function toPercent(avg) { return (avg - 1) / 2 * 100; }
+
+    // 0% terracotta, 50% amber, 100% grün (passt zur Sentiment-Skala).
+    function heatColor(percent) {
+        return `hsl(${12 + percent / 100 * 138}, 58%, 86%)`;
+    }
+
+    function activeCategories() {
+        const selected = document.getElementById("cat-filter").value;
+        return selected ? [selected] : dbData.categories;
+    }
+
+    async function fetchDashboard(year) {
+        const params = new URLSearchParams();
+        if (year) {
+            params.set("from", year + "-01-01");
+            params.set("to", year + "-12-31");
+        }
+        const res = await fetch("/admin/dashboard?" + params.toString());
+        dbData = await res.json();
+    }
+
+    function buildYearOptions() {
+        const select = document.getElementById("db-year");
+        const current = Number(dbData.from.slice(0, 4));
+        select.innerHTML = "";
+        for (const year of dbData.years) {
+            const opt = document.createElement("option");
+            opt.value = year;
+            opt.textContent = year;
+            opt.selected = year === current;
+            select.appendChild(opt);
+        }
+    }
+
+    function buildCategoryOptions() {
+        const select = document.getElementById("cat-filter");
+        select.innerHTML = '<option value="">Alle</option>';
+        for (const cat of dbData.categories) {
+            const opt = document.createElement("option");
+            opt.value = cat;
+            opt.textContent = cat;
+            select.appendChild(opt);
+        }
+    }
+
+    function buildLocationFilter() {
+        const select = document.getElementById("loc-filter");
+        select.innerHTML = '<option value="">Alle</option>';
+        for (const entry of dbData.locations) {
+            const opt = document.createElement("option");
+            opt.value = entry.location === null ? "__none__" : entry.location;
+            opt.textContent = locLabel(entry.location);
+            select.appendChild(opt);
+        }
+    }
+
+    function makeTable(title, series, active) {
+        const box = document.createElement("div");
+        box.className = "heat-box";
+        const panel = document.createElement("div");
+        panel.className = "panel";
+        const heading = document.createElement("h3");
+        heading.textContent = title;
+        panel.appendChild(heading);
+
+        const scroll = document.createElement("div");
+        scroll.className = "heat-scroll";
+        const table = document.createElement("table");
+        table.className = "heat";
+
+        const thead = document.createElement("thead");
+        const headRow = document.createElement("tr");
+        const corner = document.createElement("th");
+        corner.className = "cat";
+        corner.textContent = "Kategorie";
+        headRow.appendChild(corner);
+        for (const month of dbData.months) {
+            const th = document.createElement("th");
+            th.textContent = monthShort(month);
+            headRow.appendChild(th);
+        }
+        const avgHead = document.createElement("th");
+        avgHead.className = "avg";
+        avgHead.textContent = "Ø";
+        avgHead.title = "Durchschnitt über das Jahr";
+        headRow.appendChild(avgHead);
+        thead.appendChild(headRow);
+        table.appendChild(thead);
+
+        const tbody = document.createElement("tbody");
+        for (const cat of active) {
+            const byMonth = {};
+            for (const p of (series[cat] || [])) byMonth[p.month] = p;
+            const tr = document.createElement("tr");
+            const name = document.createElement("td");
+            name.className = "cat";
+            name.textContent = cat;
+            tr.appendChild(name);
+            // Gewichteter Jahresschnitt aus den Monatswerten (nach Fallzahl).
+            let scoreSum = 0;
+            let nSum = 0;
+            for (const month of dbData.months) {
+                const td = document.createElement("td");
+                const point = byMonth[month];
+                if (point) {
+                    const percent = toPercent(point.avg);
+                    td.textContent = Math.round(percent) + "%";
+                    td.style.background = heatColor(percent);
+                    td.title = `Anzahl: ${point.n}`;
+                    scoreSum += point.avg * point.n;
+                    nSum += point.n;
+                } else {
+                    td.className = "empty";
+                    td.textContent = "-";
+                }
+                tr.appendChild(td);
+            }
+            const avgTd = document.createElement("td");
+            if (nSum > 0) {
+                const percent = toPercent(scoreSum / nSum);
+                avgTd.className = "avg";
+                avgTd.textContent = Math.round(percent) + "%";
+                avgTd.style.background = heatColor(percent);
+                avgTd.title = `Durchschnitt aus ${nSum} Aspekten`;
+            } else {
+                avgTd.className = "avg empty";
+                avgTd.textContent = "-";
+            }
+            tr.appendChild(avgTd);
+            tbody.appendChild(tr);
+        }
+        table.appendChild(tbody);
+        scroll.appendChild(table);
+        panel.appendChild(scroll);
+        box.appendChild(panel);
+        document.getElementById("charts").appendChild(box);
+    }
+
+    function renderTables() {
+        document.getElementById("charts").innerHTML = "";
+        const active = activeCategories();
+        const selectedLoc = document.getElementById("loc-filter").value;
+
+        // Gesamt bleibt immer sichtbar.
+        makeTable("Gesamt", dbData.total, active);
+
+        for (const entry of dbData.locations) {
+            const key = entry.location === null ? "__none__" : entry.location;
+            if (selectedLoc && selectedLoc !== key) continue;
+            makeTable(locLabel(entry.location), entry.series, active);
+        }
+    }
+
+    // KPI-Kopfzeile: gilt für das ganze gewählte Jahr (alle Bereiche und
+    // Kategorien), die Filter darunter verfeinern nur die Heatmaps.
+    const ARROW_UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5 12l7-7 7 7"/></svg>';
+    const ARROW_DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>';
+
+    function renderKpis(s) {
+        const el = document.getElementById("kpis");
+        if (!s || s.index === null) { el.innerHTML = ""; return; }
+        const d = s.distribution;
+        const total = d.pos + d.neu + d.neg || 1;
+        const pPos = Math.round(d.pos / total * 100);
+        const pNeu = Math.round(d.neu / total * 100);
+        const pNeg = 100 - pPos - pNeu;
+
+        let trend;
+        if (s.trend) {
+            const up = s.trend.delta >= 0;
+            trend = `<div class="kpi-value" style="color:${up ? "var(--pos)" : "var(--neg)"}">`
+                + `<span class="kpi-arrow">${up ? ARROW_UP : ARROW_DOWN}</span>`
+                + `${up ? "+" : "−"}${Math.abs(s.trend.delta)}<span class="kpi-unit"> Pkt.</span></div>`;
+        } else {
+            trend = '<div class="kpi-value">–</div>';
+        }
+
+        el.innerHTML = `
+            <div class="kpi">
+                <div class="kpi-label">Zufriedenheitsindex</div>
+                <div class="kpi-value">${s.index}<span class="kpi-unit"> / 100</span></div>
+                <div class="kpi-sub">Durchschnitt über das Jahr</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Verteilung</div>
+                <div class="dist-bar">
+                    <span class="dist-seg-pos" style="width:${pPos}%"></span>
+                    <span class="dist-seg-neu" style="width:${pNeu}%"></span>
+                    <span class="dist-seg-neg" style="width:${pNeg}%"></span>
+                </div>
+                <div class="dist-legend">
+                    <span><i style="background:var(--pos)"></i>${pPos}% gut</span>
+                    <span><i style="background:var(--neu)"></i>${pNeu}% mittel</span>
+                    <span><i style="background:var(--neg)"></i>${pNeg}% schlecht</span>
+                </div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Feedbacks</div>
+                <div class="kpi-value">${s.feedback_count}</div>
+                <div class="kpi-sub">${s.aspect_count} Aspekte</div>
+            </div>
+            <div class="kpi">
+                <div class="kpi-label">Trend</div>
+                ${trend}
+                <div class="kpi-sub">Index gegenüber Vormonat</div>
+            </div>`;
+    }
+
+    let dashboardReady = false;
+    async function initDashboard() {
+        if (dashboardReady) return;
+        dashboardReady = true;
+        await fetchDashboard();
+        buildYearOptions();
+        buildCategoryOptions();
+        buildLocationFilter();
+        renderKpis(dbData.summary);
+        renderTables();
+    }
+
+    document.getElementById("db-year").addEventListener("change", async (e) => {
+        await fetchDashboard(e.target.value);
+        buildCategoryOptions();
+        renderKpis(dbData.summary);
+        renderTables();
+    });
+    document.getElementById("cat-filter").addEventListener("change", renderTables);
+    document.getElementById("loc-filter").addEventListener("change", renderTables);
+
+    // Kategorien und Bereiche: standardmäßig nur Anzeige, "Bearbeiten"
+    // schaltet die Funktionen frei. Gespeichert wird gebündelt über die
+    // bestehenden Endpunkte.
+    const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13"/></svg>';
+    const PLUS_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>';
+    const PEN_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+
+    const catList = {id: "cat-card", noun: "Kategorien", reeval: true, editing: false, items: []};
+    const locList = {id: "loc-card", noun: "Bereiche", reeval: false, editing: false, items: []};
+    let pendingCategories = null;  // {categories, since} zwischen Klick und Modal-Bestätigung
+
+    function itemRow(item) {
+        const row = document.createElement("div");
+        row.className = "edit-item";
+        if (item && item.id != null) row.dataset.id = item.id;
+        const input = document.createElement("input");
+        input.type = "text";
+        input.value = item ? item.name : "";
+        const del = document.createElement("button");
+        del.type = "button";
+        del.className = "icon-btn";
+        del.title = "Löschen";
+        del.innerHTML = TRASH_ICON;
+        del.addEventListener("click", () => row.remove());
+        row.appendChild(input);
+        row.appendChild(del);
+        return row;
+    }
+
+    // Leere Namen werden verworfen, vorhandene id bleibt erhalten.
+    function collectItems(card) {
+        const items = [];
+        for (const row of card.querySelectorAll(".edit-item")) {
+            const name = row.querySelector("input").value.trim();
+            if (!name) continue;
+            const item = {name};
+            if (row.dataset.id) item.id = Number(row.dataset.id);
+            items.push(item);
+        }
+        return items;
+    }
+
+    function renderView(cfg, card) {
+        const head = document.createElement("div");
+        head.className = "list-head";
+        const count = document.createElement("span");
+        count.className = "count";
+        count.textContent = `${cfg.items.length} ${cfg.noun}`;
+        const editBtn = document.createElement("button");
+        editBtn.type = "button";
+        editBtn.className = "btn";
+        editBtn.innerHTML = PEN_ICON + "Bearbeiten";
+        editBtn.addEventListener("click", () => { cfg.editing = true; renderList(cfg); });
+        head.appendChild(count);
+        head.appendChild(editBtn);
+
+        const body = document.createElement("div");
+        body.className = "list-body";
+        const tags = document.createElement("div");
+        tags.className = "tag-list";
+        for (const item of cfg.items) {
+            const tag = document.createElement("span");
+            tag.className = "tag";
+            tag.textContent = item.name;
+            tags.appendChild(tag);
+        }
+        body.appendChild(tags);
+        card.appendChild(head);
+        card.appendChild(body);
+    }
+
+    function renderEdit(cfg, card) {
+        const head = document.createElement("div");
+        head.className = "list-head";
+        const title = document.createElement("span");
+        title.className = "count";
+        title.textContent = cfg.noun + " bearbeiten";
+        head.appendChild(title);
+
+        const body = document.createElement("div");
+        body.className = "list-body";
+        const items = document.createElement("div");
+        items.className = "edit-items";
+        for (const item of cfg.items) items.appendChild(itemRow(item));
+        body.appendChild(items);
+
+        const add = document.createElement("button");
+        add.type = "button";
+        add.className = "add-item";
+        add.innerHTML = PLUS_ICON + "Hinzufügen";
+        add.addEventListener("click", () => {
+            const row = itemRow(null);
+            items.appendChild(row);
+            row.querySelector("input").focus();
+        });
+        body.appendChild(add);
+
+        let sinceInput = null;
+        if (cfg.reeval) {
+            const reeval = document.createElement("div");
+            reeval.className = "reeval";
+            const label = document.createElement("label");
+            label.className = "field-label";
+            label.textContent = "Neu auswerten ab";
+            sinceInput = document.createElement("input");
+            sinceInput.type = "date";
+            sinceInput.value = new Date().getFullYear() + "-01-01";
+            const hint = document.createElement("span");
+            hint.className = "hint";
+            hint.textContent = "Ab diesem Tag wird das Feedback neu ausgewertet.";
+            reeval.appendChild(label);
+            reeval.appendChild(sinceInput);
+            reeval.appendChild(hint);
+            body.appendChild(reeval);
+        }
+
+        const foot = document.createElement("div");
+        foot.className = "list-foot";
+        const cancel = document.createElement("button");
+        cancel.type = "button";
+        cancel.className = "btn";
+        cancel.textContent = "Abbrechen";
+        cancel.addEventListener("click", () => { cfg.editing = false; renderList(cfg); });
+        const save = document.createElement("button");
+        save.type = "button";
+        save.className = "btn btn-accent";
+        save.textContent = "Speichern";
+        save.addEventListener("click", () => onSave(cfg, card, sinceInput));
+        foot.appendChild(cancel);
+        foot.appendChild(save);
+
+        card.appendChild(head);
+        card.appendChild(body);
+        card.appendChild(foot);
+    }
+
+    function renderList(cfg) {
+        const card = document.getElementById(cfg.id);
+        card.innerHTML = "";
+        if (cfg.editing) renderEdit(cfg, card);
+        else renderView(cfg, card);
+    }
+
+    async function onSave(cfg, card, sinceInput) {
+        const items = collectItems(card);
+        if (cfg.reeval) {
+            const since = sinceInput.value;
+            if (!since) { toast("Bitte Stichtag wählen.", "error"); return; }
+            // Erst nach Bestätigung im Modal speichern, dann Neuauswertung.
+            pendingCategories = {categories: items, since};
+            overlay.hidden = false;
+            return;
+        }
+        const res = await fetch("/admin/locations/save", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({locations: items}),
+        });
+        if (!res.ok) { toast("Konnte nicht speichern (evtl. doppelte Namen).", "error"); return; }
+        await loadLocations();
+        toast("Bereiche gespeichert.", "success");
+    }
+
+    async function loadCategories() {
+        const res = await fetch("/admin/categories");
+        catList.items = await res.json();
+        catList.editing = false;
+        renderList(catList);
+    }
+
+    async function loadLocations() {
+        const res = await fetch("/admin/locations");
+        locList.items = await res.json();
+        locList.editing = false;
+        renderList(locList);
+    }
+
+    // Modal nur für Kategorien: Bestätigung der Neuauswertung.
+    const overlay = document.getElementById("modal-overlay");
+    document.getElementById("modal-cancel").addEventListener("click", () => {
+        overlay.hidden = true;
+        pendingCategories = null;
+    });
+    document.getElementById("modal-confirm").addEventListener("click", async () => {
+        if (!pendingCategories) { overlay.hidden = true; return; }
+        const res = await fetch("/admin/categories/save", {
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify(pendingCategories),
+        });
+        if (!res.ok) {
+            toast("Konnte nicht speichern (evtl. doppelte Namen).", "error");
+            overlay.hidden = true;
+            pendingCategories = null;
+            return;
+        }
+        // Server ist nun im Wartungsmodus, Neuladen zeigt die Wartungsseite.
+        window.location.reload();
+    });
+
+    // Beim Laden den zuletzt aktiven Reiter wiederherstellen.
+    showSection(localStorage.getItem("admin-section") || "dashboard");
+</script>
+</body>
+</html>
